@@ -51,9 +51,9 @@
               "RelativeDocumentMoniker": "..\\..\\..\\..\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 4\\myquakemod\\def\\weapons\\rocketlauncher.def",
               "ToolTip": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 4\\myquakemod\\def\\weapons\\rocketlauncher.def",
               "RelativeToolTip": "..\\..\\..\\..\\Program Files (x86)\\Steam\\steamapps\\common\\Quake 4\\myquakemod\\def\\weapons\\rocketlauncher.def",
-              "ViewState": "AgIAAD0AAAAAAAAAAIAwwEQAAAAZAAAAAAAAAA==",
+              "ViewState": "AgIAAEAAAAAAAAAAAAAAAFYAAAAlAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001913|",
-              "WhenOpened": "2025-09-15T18:09:52.977Z",
+              "WhenOpened": "2025-09-16T20:02:03.721Z",
               "EditorCaption": ""
             },
             {
@@ -64,7 +64,7 @@
               "RelativeDocumentMoniker": "game\\weapon\\WeaponRocketLauncher.cpp",
               "ToolTip": "C:\\Users\\vmoti\\git\\Game-Mod-Q4\\game\\weapon\\WeaponRocketLauncher.cpp",
               "RelativeToolTip": "game\\weapon\\WeaponRocketLauncher.cpp",
-              "ViewState": "AgIAANYAAAAAAAAAAAApwOIAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAALIBAAAAAAAAAAAowMYBAAAkAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2025-09-15T17:51:33.011Z",
               "EditorCaption": ""
@@ -77,9 +77,10 @@
               "RelativeDocumentMoniker": "game\\Weapon.h",
               "ToolTip": "C:\\Users\\vmoti\\git\\Game-Mod-Q4\\game\\Weapon.h",
               "RelativeToolTip": "game\\Weapon.h",
-              "ViewState": "AgIAALoBAAAAAAAAAAAhwJEBAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAPoAAAAAAAAAAAAhwJEBAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-09-14T00:55:08.123Z"
+              "WhenOpened": "2025-09-14T00:55:08.123Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
