@@ -304,6 +304,15 @@ public:
 	int						lastHitTime;			// last time projectile fired by player hit target
 	int						lastSavingThrowTime;	// for the "free miss" effect
 
+	//Momentum upgrade contents:
+	bool doubleJumpUnlock;
+	bool hasDoubleJumped;
+	bool momentum25Reached;
+	bool momentum50Reached;
+	void SetWalkSpeed(float speed);
+	bool momentum25AmmoRegenTriggered;
+
+
 	struct playerFlags_s {
 		bool		forward			:1;
 		bool		backward		:1;
@@ -423,6 +432,9 @@ public:
 // RITUAL BEGIN
 // squirrel: Mode-agnostic buymenus
 	float					buyMenuCash;
+	float	momentumLevel;
+	int   lastMomentumDecayTime;
+	float   momentumSpeedMultiplier;
 // RITUAL END
 
 public:
@@ -806,6 +818,7 @@ private:
 	jointHandle_t			chestJoint;
 
 	idPhysics_Player		physicsObj;			// player physics
+	idPhysics_Player   *pm;
 
  	idList<aasLocation_t>	aasLocation;		// for AI tracking the player
 

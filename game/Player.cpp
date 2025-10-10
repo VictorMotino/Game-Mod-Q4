@@ -1815,6 +1815,14 @@ void idPlayer::Spawn( void ) {
 
 	// allow thinking during cinematics
 	cinematic = true;
+	
+	//I will throw momentum here:
+	momentumLevel = 0.0f;
+	lastMomentumDecayTime = gameLocal.time;
+	momentum25Reached = false;
+	momentum50Reached = false;
+	momentumSpeedMultiplier = 1.0f;
+	pm = &physicsObj;
 
 	if ( gameLocal.isMultiplayer ) {
 		// always start in spectating state waiting to be spawned in
@@ -9043,8 +9051,23 @@ void idPlayer::Move( void ) {
 	} else {
 		pfl.crouch	= physicsObj.IsCrouching();
 		pfl.onGround	= physicsObj.HasGroundContacts();
+		//probably the best place for me to throw my double jump logic:
+		if (pfl.onGround) {
+			hasDoubleJumped = false;
+		}
 		pfl.onLadder	= physicsObj.OnLadder();
 		pfl.jump		= physicsObj.HasJumped();
+		if (pfl.jump) {
+			if (pfl.onGround) {
+				hasDoubleJumped = false;
+			}
+			else if (doubleJumpUnlock && !hasDoubleJumped) {
+				idVec3 vel = physicsObj.GetLinearVelocity();
+				vel.z = pm_jumpheight.GetFloat() * 8.0f;
+				physicsObj.SetLinearVelocity(vel);
+
+			}
+		}
 
  		// check if we're standing on top of a monster and give a push if we are
  		idEntity *groundEnt = physicsObj.GetGroundEntity();
@@ -9304,6 +9327,46 @@ void idPlayer::Think( void ) {
 		return;
 	}
 
+	const int decayInterval = 1000;
+	const float decayRate = 0.01f;
+
+	if (gameLocal.time - lastMomentumDecayTime >= decayInterval) {
+		momentumLevel -= decayRate;
+		momentumLevel = idMath::ClampFloat(0.0f, 1.0f, momentumLevel);
+		lastMomentumDecayTime = gameLocal.time;
+		gameLocal.Printf("Momentum has decayed to %.2f\n", momentumLevel);
+	}
+
+	// Actually update the damn hud that has been static permanently:
+	if (hud) {
+		hud->SetStateFloat("momentumLevel", momentumLevel);
+		hud->StateChanged(gameLocal.time);
+	}
+
+	gameLocal.Printf("DEBUG: momentumLevel = %.2f, ammoFlag = %d\n", momentumLevel, momentum25AmmoRegenTriggered);
+
+	// Momentumbar checkpoint checks:
+	if (momentumLevel >= 0.25f && !momentum25AmmoRegenTriggered) {
+		momentum25AmmoRegenTriggered = true;
+
+		cvarSystem->SetCVarBool("g_cheats", true);
+		cmdSystem->BufferCommandText(CMD_EXEC_NOW, "give ammo");
+
+		gameLocal.Printf("Momentum 25 reached! Ammo cheat executed.\n");
+	}
+
+	if (momentumLevel >= 0.50f && !momentum50Reached) {
+		momentum50Reached = true;
+		health += 50;
+		if (health > inventory.maxHealth) {
+			health = inventory.maxHealth;
+		}
+		gameLocal.Printf("Momentum 50 confirmed -> Health regenerated.\n");
+	}
+
+	if (pm) {
+		pm->SetWalkSpeed(300.0f);
+	}
 #ifdef _XENON
 	// change the crosshair if it's modified
 	if ( cursor && weapon && g_crosshairColor.IsModified() ) {
@@ -9354,6 +9417,9 @@ void idPlayer::Think( void ) {
 	usercmd = gameLocal.usercmds[ entityNumber ];
 	buttonMask &= usercmd.buttons;
 	usercmd.buttons &= ~buttonMask;
+
+
+
 
 	HandleObjectiveInput();
 	if ( objectiveSystemOpen ) {

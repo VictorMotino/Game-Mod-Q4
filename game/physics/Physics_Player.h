@@ -80,6 +80,8 @@ public:
 	const idVec3 &			PlayerGetOrigin( void ) const;	// != GetOrigin
 
 public:	// common physics interface
+	void SetWalkSpeed(float speed);
+	void SetRunSpeed(float speed);
 	bool					Evaluate( int timeStepMSec, int endTimeMSec );
 	void					UpdateTime( int endTimeMSec );
 	int						GetTime( void ) const;

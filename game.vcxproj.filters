@@ -489,9 +489,6 @@
     <ClCompile Include="game\weapon\WeaponRocketLauncher.cpp">
       <Filter>Game\Weapon</Filter>
     </ClCompile>
-    <ClCompile Include="game\weapon\WeaponShotgun.cpp">
-      <Filter>Game\Weapon</Filter>
-    </ClCompile>
     <ClCompile Include="game\mp\Buying.cpp">
       <Filter>Game\MP</Filter>
     </ClCompile>
@@ -515,6 +512,9 @@
     </ClCompile>
     <ClCompile Include="game\mp\stats\StatWindow.cpp">
       <Filter>Game\MP\Stats</Filter>
+    </ClCompile>
+    <ClCompile Include="game\weapon\WeaponShotgun.cpp">
+      <Filter>Game</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

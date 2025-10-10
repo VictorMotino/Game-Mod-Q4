@@ -522,6 +522,10 @@ void idPhysics_Player::Friction( void ) {
 	}
 }
 
+void idPhysics_Player::SetWalkSpeed(float speed) {
+	walkSpeed = speed;
+}
+
 /*
 ===================
 idPhysics_Player::WaterJumpMove

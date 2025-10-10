@@ -1664,6 +1664,13 @@ void idAI::Killed( idEntity *inflictor, idEntity *attacker, int damage, const id
 		aiManager.AnnounceKill ( this, attacker, inflictor );
 		aiManager.AnnounceDeath ( this, attacker );
    	}
+	//Here's where I'm thinking of tossing the momentum bar detection + increase after AI death at the hands of our player:
+	idPlayer* player = gameLocal.GetLocalPlayer();
+	if (player) {
+		player->momentumLevel += 0.2f; //prob will tweak as I test.
+		player->momentumLevel = idMath::ClampFloat(0.0f, 1.0f, player->momentumLevel);
+		gameLocal.Printf("Momentum should increase to %.2f\n", player->momentumLevel);
+	}
 
 	if ( attacker && attacker->IsType( idActor::GetClassType() ) ) {
 		gameLocal.AlertAI( ( idActor * )attacker );
