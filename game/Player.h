@@ -309,9 +309,8 @@ public:
 	bool hasDoubleJumped;
 	bool momentum25Reached;
 	bool momentum50Reached;
-	bool momentum75Reached;
-	bool momentum100Reached;
-	bool momentum100AmmoRegenTriggered;
+	void SetWalkSpeed(float speed);
+	bool momentum25AmmoRegenTriggered;
 
 
 	struct playerFlags_s {
@@ -436,16 +435,6 @@ public:
 	float	momentumLevel;
 	int   lastMomentumDecayTime;
 	float   momentumSpeedMultiplier;
-	bool   bulletTimeActive;
-	int   bulletTimeEndTime;
-	void   StartBulletTime();
-	void   EndBulletTime();
-	bool hasMomentumShield;
-	bool hasDropBooster;
-	bool hasMomentumSaver;
-	bool permMomentumStartBonus;
-	bool permHealthPoolIncrease;
-
 // RITUAL END
 
 public:

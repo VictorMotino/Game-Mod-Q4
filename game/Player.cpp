@@ -1342,9 +1342,6 @@ idPlayer::idPlayer() {
 	teamAmmoRegenPending	= false;
 	teamDoubler			= NULL;		
 	teamDoublerPending		= false;
-
-	bulletTimeActive = false;
-	bulletTimeEndTime = 0;
 }
 
 /*
@@ -1824,25 +1821,7 @@ void idPlayer::Spawn( void ) {
 	lastMomentumDecayTime = gameLocal.time;
 	momentum25Reached = false;
 	momentum50Reached = false;
-	momentum75Reached = false;
-	momentum100Reached = false;
-	if (permMomentumStartBonus) {
-		momentumLevel = 0.25f;
-	}
-
-	if (permHealthPoolIncrease) {
-		inventory.maxHealth += 25;
-	}
-	momentum100AmmoRegenTriggered = false;
-	hasDoubleJumped = false;
 	momentumSpeedMultiplier = 1.0f;
-	if (hasMomentumShield) {
-		inventory.armor += 50;
-		if (inventory.armor > inventory.maxarmor) {
-			inventory.armor = inventory.maxarmor;
-		}
-	}
-
 	pm = &physicsObj;
 
 	if ( gameLocal.isMultiplayer ) {
@@ -2669,25 +2648,6 @@ void idPlayer::Restore( idRestoreGame *savefile ) {
 	declManager->FindType( DECL_ENTITYDEF, "dmg_shellshock", false, false );
 	declManager->FindType( DECL_ENTITYDEF, "dmg_shellshock_nohl", false, false );
 // RAVEN END
-
-	lastMomentumDecayTime = gameLocal.time;
-	momentumLevel = 0.25f;
-
-	if (permMomentumStartBonus && momentumLevel < 0.25f) {
-		momentumLevel = 0.25f; 
-	}
-
-	if (permHealthPoolIncrease) {
-		inventory.maxHealth += 25; 
-	}
-
-	if (hasMomentumShield) {
-		inventory.armor += 50;
-		if (inventory.armor > inventory.maxarmor) {
-			inventory.armor = inventory.maxarmor;
-		}
-	}
-
 }
 
 /*
@@ -9096,18 +9056,16 @@ void idPlayer::Move( void ) {
 			hasDoubleJumped = false;
 		}
 		pfl.onLadder	= physicsObj.OnLadder();
-		pfl.jump =   (usercmd.upmove > 0);
+		pfl.jump		= physicsObj.HasJumped();
 		if (pfl.jump) {
 			if (pfl.onGround) {
 				hasDoubleJumped = false;
 			}
-			else if (momentum50Reached && !hasDoubleJumped) {
+			else if (doubleJumpUnlock && !hasDoubleJumped) {
 				idVec3 vel = physicsObj.GetLinearVelocity();
-				if (vel.z <= 0.0f) {
-					vel.z = pm_jumpheight.GetFloat() * 8.0f;
-					physicsObj.SetLinearVelocity(vel);
-					hasDoubleJumped = true;
-				}
+				vel.z = pm_jumpheight.GetFloat() * 8.0f;
+				physicsObj.SetLinearVelocity(vel);
+
 			}
 		}
 
@@ -9370,17 +9328,13 @@ void idPlayer::Think( void ) {
 	}
 
 	const int decayInterval = 1000;
-	float decayRate = 0.02f;
-
-	if (hasMomentumSaver) {
-		decayRate *= 0.5f; // Slower decay
-	}
+	const float decayRate = 0.01f;
 
 	if (gameLocal.time - lastMomentumDecayTime >= decayInterval) {
 		momentumLevel -= decayRate;
 		momentumLevel = idMath::ClampFloat(0.0f, 1.0f, momentumLevel);
 		lastMomentumDecayTime = gameLocal.time;
-		gameLocal.Printf("Momentum count: %.2f\n", momentumLevel);
+		gameLocal.Printf("Momentum has decayed to %.2f\n", momentumLevel);
 	}
 
 	// Actually update the damn hud that has been static permanently:
@@ -9389,60 +9343,30 @@ void idPlayer::Think( void ) {
 		hud->StateChanged(gameLocal.time);
 	}
 
+	gameLocal.Printf("DEBUG: momentumLevel = %.2f, ammoFlag = %d\n", momentumLevel, momentum25AmmoRegenTriggered);
 
 	// Momentumbar checkpoint checks:
-	if (momentumLevel >= 1.00f && !momentum100AmmoRegenTriggered) {
-		momentum100AmmoRegenTriggered = true;
+	if (momentumLevel >= 0.25f && !momentum25AmmoRegenTriggered) {
+		momentum25AmmoRegenTriggered = true;
 
 		cvarSystem->SetCVarBool("g_cheats", true);
 		cmdSystem->BufferCommandText(CMD_EXEC_NOW, "give ammo");
 
-		gameLocal.Printf("Momentum 100 confirmed -> ammo restored.\n");
+		gameLocal.Printf("Momentum 25 reached! Ammo cheat executed.\n");
 	}
 
 	if (momentumLevel >= 0.50f && !momentum50Reached) {
 		momentum50Reached = true;
-		gameLocal.Printf("Momentum 50 confirmed -> double jump enabled.\n");
-	}
-
-	if (momentumLevel < 0.50f && momentum50Reached) {
-		momentum50Reached = false;
-	}
-
-	if (momentumLevel >= 0.75f && !momentum75Reached) {
-		momentum75Reached = true;
-		health += 25;
+		health += 50;
 		if (health > inventory.maxHealth) {
 			health = inventory.maxHealth;
 		}
-		gameLocal.Printf("Momentum 75 confirmed -> Health regenerated.\n");
+		gameLocal.Printf("Momentum 50 confirmed -> Health regenerated.\n");
 	}
 
-	if (momentumLevel < 0.75f && momentum75Reached) {
-		momentum75Reached = false;
+	if (pm) {
+		pm->SetWalkSpeed(300.0f);
 	}
-
-	if (momentumLevel >= 0.25f && !momentum25Reached) {
-		momentum25Reached = true;
-		cvarSystem->SetCVarFloat("pm_speed", 300.0f);
-		cvarSystem->SetCVarFloat("pm_walkspeed", 150.0f);
-	}
-
-	if (momentumLevel < 0.25f && momentum25Reached) {
-		momentum25Reached = false;
-		cvarSystem->SetCVarFloat("pm_speed", 160.0f);
-		cvarSystem->SetCVarFloat("pm_walkspeed",80.0f);
-	}
-
-
-	if (momentumLevel >= 1.0f && !bulletTimeActive) {
-		StartBulletTime();
-	}
-
-	if (bulletTimeActive && gameLocal.time >= bulletTimeEndTime) {
-		EndBulletTime();
-	}
-
 #ifdef _XENON
 	// change the crosshair if it's modified
 	if ( cursor && weapon && g_crosshairColor.IsModified() ) {
@@ -9785,30 +9709,6 @@ void idPlayer::Think( void ) {
 		inBuyZone = false;
 
 	inBuyZonePrev = false;
-}
-
-void idPlayer::StartBulletTime() {
-	bulletTimeActive = true;
-	bulletTimeEndTime = gameLocal.time + 6000; 
-	cvarSystem->SetCVarFloat("pm_walkspeed", 150.0f);
-	cvarSystem->SetCVarFloat("pm_speed", 300.0f);
-
-	for (idEntity* ent = gameLocal.spawnedEntities.Next(); ent != NULL; ent = ent->spawnNode.Next()) {
-		if (ent->GetAnimator()) {
-			ent->GetAnimator()->SetPlaybackRate(0.2f); // Dramatic slow-mo, very nice
-		}
-	}
-}
-
-void idPlayer::EndBulletTime() {
-	bulletTimeActive = false;
-	cvarSystem->SetCVarFloat("pm_walkspeed", 150.0f);
-	cvarSystem->SetCVarFloat("pm_speed", 300.0f);
-	for (idEntity* ent = gameLocal.spawnedEntities.Next(); ent != NULL; ent = ent->spawnNode.Next()) {
-		if (ent->GetAnimator()) {
-			ent->GetAnimator()->SetPlaybackRate(1.0f); // back to boring normal speed.
-		}
-	}
 }
 
 /*

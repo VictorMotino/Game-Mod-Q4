@@ -42,15 +42,6 @@ idAI::idAI
 =====================
 */
 idAI::idAI ( void ) {
-	slowEffectEndTime = 0;
-	isSlowed = false;
-	isBurning = false;
-	burnEffectEndTime = 0;
-	nextBurnTickTime = 0;
-	freezeEndTime = 0;
-	isFrozen = false;
-
-
 	projectile_height_to_distance_ratio = 1.0f;
 
 	aas						= NULL;
@@ -166,16 +157,6 @@ idAI::~idAI() {
 	scriptObject.Free();
 	aiManager.RemoveTeammate ( this );
 	SetPhysics( NULL );
-}
-
-void idAI::ApplyFreezeEffect(int duration) {
-	if (isFrozen) return;
-
-	isFrozen = true;
-	freezeEndTime = gameLocal.time + duration;
-
-	GetAnimator()->SetPlaybackRate(0.0f);
-	GetPhysics()->SetLinearVelocity(vec3_zero);
 }
 
 /*
@@ -1262,25 +1243,6 @@ void idAI::Think( void ) {
 	if ( ai_speeds.GetBool ( ) ) {
 		aiManager.timerThink.Stop ( );
 	}
-
-	if (isSlowed && gameLocal.time > slowEffectEndTime) {
-		GetAnimator()->SetPlaybackRate(1.0f);
-		isSlowed = false;
-	}
-
-	if (isBurning) {
-		if (gameLocal.time > burnEffectEndTime) {
-			isBurning = false;
-		}
-		else if (gameLocal.time >= nextBurnTickTime) {
-			Damage(this, this, vec3_origin, "damage_triggerhurt_15", 1.0f, 0);
-			nextBurnTickTime = gameLocal.time + 250;
-		}
-	}
-
-
-
-
 }
 
 /*
@@ -1595,68 +1557,6 @@ bool idAI::Pain( idEntity *inflictor, idEntity *attacker, int damage, const idVe
 		// React to taking pain
 		ReactToPain ( attacker, damage );
 
-		if (attacker->IsType(idPlayer::GetClassType())) {
-			idPlayer* player = static_cast<idPlayer*>(attacker);
-			float momentum = player->momentumLevel;
-
-
-			if (momentum >= 0.25f && momentum < 0.5f && !isSlowed) {
-				GetAnimator()->SetPlaybackRate(0.5f);
-				slowEffectEndTime = gameLocal.time + 4000;
-				isSlowed = true;
-				int numJoints = GetAnimator()->NumJoints();
-				for (int i = 0; i < numJoints; ++i) {
-					jointHandle_t joint = (jointHandle_t)i;
-
-					if (i != GetAnimator()->GetFirstChild(joint)) {
-						PlayEffect("fx_burn_lightning", joint);
-					}
-				}
-			}
-
-			if (momentum >= 0.5f && momentum < 0.75f && !isBurning) {
-				isBurning = true;
-				burnEffectEndTime = gameLocal.time + 5000;
-				nextBurnTickTime = gameLocal.time;
-
-				int numJoints = GetAnimator()->NumJoints();
-				for (int i = 0; i < numJoints; ++i) {
-					jointHandle_t joint = (jointHandle_t)i;
-					if (i != GetAnimator()->GetFirstChild(joint)) {
-						PlayEffect("fx_burn_particles", joint);
-					}
-				}
-			}
-
-
-			if (momentum >= 0.5f && spawnArgs.GetBool("apply_freeze") && !isFrozen) {
-				freezeEndTime = gameLocal.time + 5000;
-				isFrozen = true;
-			}
-
-			if (spawnArgs.GetBool("apply_freeze") && !isFrozen) {
-				freezeEndTime = gameLocal.time + 5000;
-				isFrozen = true;
-
-				GetAnimator()->SetPlaybackRate(0.0f);
-				GetPhysics()->SetLinearVelocity(vec3_zero);
-			}
-			
-			if (damage > 0 && spawnArgs.GetBool("gravityPull") && attacker && attacker != this) {
-				idVec3 pullDir;
-
-				if (attacker->IsType(idActor::GetClassType())) {
-					idActor* actor = static_cast<idActor*>(attacker);
-					pullDir = actor->GetPhysics()->GetOrigin() - GetPhysics()->GetOrigin();
-					pullDir.Normalize();
-
-					const float pullStrength = 500.0f;
-					GetPhysics()->AddForce(gameLocal.time, GetPhysics()->GetOrigin(), pullDir * pullStrength);
-				}
-			}															  
-
-
-		}
 		pain.takenThisFrame += damage;
 		pain.lastTakenTime = gameLocal.time;
 		combat.tacticalPainTaken += damage;
@@ -1702,30 +1602,6 @@ bool idAI::Pain( idEntity *inflictor, idEntity *attacker, int damage, const idVe
 	}	
 
 	return aifl.pain;
-}
-
-void idAI::ApplyPullEffect(const idVec3& pullOrigin, float force, int durationMS) {
-	if (isPulled) {
-		return; // Prevent stacking
-	}
-
-	// Calculate direction toward the player
-	idVec3 dir = pullOrigin - GetPhysics()->GetOrigin();
-	dir.Normalize();
-
-	// Apply a small velocity toward the player
-	GetPhysics()->SetLinearVelocity(dir * force);
-
-	// Slow down animation to simulate resistance
-	GetAnimator()->SetPlaybackRate(0.5f);
-	slowEffectEndTime = gameLocal.time + durationMS;
-	isSlowed = true;
-
-	// Mark as pulled
-	isPulled = true;
-	pullEffectEndTime = gameLocal.time + durationMS;
-
-	gameLocal.Printf("AI %s is being pulled toward player.\n", GetName());
 }
 
 /*
@@ -1791,15 +1667,9 @@ void idAI::Killed( idEntity *inflictor, idEntity *attacker, int damage, const id
 	//Here's where I'm thinking of tossing the momentum bar detection + increase after AI death at the hands of our player:
 	idPlayer* player = gameLocal.GetLocalPlayer();
 	if (player) {
-		player->momentumLevel += 0.15f; //prob will tweak as I test.
+		player->momentumLevel += 0.2f; //prob will tweak as I test.
 		player->momentumLevel = idMath::ClampFloat(0.0f, 1.0f, player->momentumLevel);
 		gameLocal.Printf("Momentum should increase to %.2f\n", player->momentumLevel);
-	}
-   
-	if (player && player->hasDropBooster) { 
-		if (gameLocal.random.RandomFloat() < 0.9f) { 
-			player->GiveItem("ammo_small"); 
-		} 
 	}
 
 	if ( attacker && attacker->IsType( idActor::GetClassType() ) ) {

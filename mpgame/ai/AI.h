@@ -477,7 +477,7 @@ public:
    	bool					IsFacingEnt						( idEntity* targetEnt );
  	bool					IsCoverValid					( void ) const;
 	virtual bool			IsCrouching						( void ) const;
-	
+
 
 public:
 
@@ -490,7 +490,7 @@ public:
 	// movement
 	idMoveState				move;
 	idMoveState				savedMove;
-	  
+
 	// physics
 	idPhysics_Monster		physicsObj;
 	

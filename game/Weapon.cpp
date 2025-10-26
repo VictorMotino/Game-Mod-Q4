@@ -2568,11 +2568,7 @@ void rvWeapon::Attack( bool altAttack, int num_attacks, float spread, float fuse
 	// add the muzzleflash
 	MuzzleFlash();
 
-	// quad 
-	// 
-	// 
-	// 
-	// overlays a sound
+	// quad damage overlays a sound
 	if ( owner->PowerUpActive( POWERUP_QUADDAMAGE ) ) {
 		viewModel->StartSound( "snd_quaddamage", SND_CHANNEL_VOICE, 0, false, NULL );
 	}

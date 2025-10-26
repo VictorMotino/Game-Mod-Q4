@@ -3,7 +3,6 @@
 
 #include "../Game_local.h"
 #include "../Weapon.h"
-#include "../Player.h"
 
 const int SHOTGUN_MOD_AMMO = BIT(0);
 
@@ -163,29 +162,11 @@ stateResult_t rvWeaponShotgun::State_Fire( const stateParms_t& parms ) {
 		STAGE_WAIT,
 	};	
 	switch ( parms.stage ) {
-	case STAGE_INIT:
-		nextAttackTime = gameLocal.time + (fireRate * owner->PowerUpModifier(PMOD_FIRERATE));
-		Attack(false, hitscans, spread, 0, 1.0f);
-		PlayAnim(ANIMCHANNEL_ALL, "fire", 0);
-
-		
-		{
-			idEntity* entities[MAX_GENTITIES];
-			int numEntities = gameLocal.EntitiesWithinRadius(owner->GetPhysics()->GetOrigin(), 256.0f, entities, MAX_GENTITIES);
-
-			for (int i = 0; i < numEntities; i++) {
-				idEntity* ent = entities[i];
-				if (ent && ent != owner && ent->GetPhysics()) {
-					idVec3 dir = owner->GetPhysics()->GetOrigin() - ent->GetPhysics()->GetOrigin();
-					dir.Normalize();
-					ent->GetPhysics()->SetLinearVelocity(dir * 500.0f); 
-				}
-			}
-
-			gameLocal.Printf("Shotgun pull-in blast activated.\n");
-		}
-
-		return SRESULT_STAGE(STAGE_WAIT);
+		case STAGE_INIT:
+			nextAttackTime = gameLocal.time + (fireRate * owner->PowerUpModifier ( PMOD_FIRERATE ));
+			Attack( false, hitscans, spread, 0, 1.0f );
+			PlayAnim( ANIMCHANNEL_ALL, "fire", 0 );	
+			return SRESULT_STAGE( STAGE_WAIT );
 	
 		case STAGE_WAIT:
 			if ( (!gameLocal.isMultiplayer && (wsfl.lowerWeapon || AnimDone( ANIMCHANNEL_ALL, 0 )) ) || AnimDone( ANIMCHANNEL_ALL, 0 ) ) {

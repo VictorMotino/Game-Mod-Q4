@@ -514,7 +514,7 @@
       <Filter>Game\MP\Stats</Filter>
     </ClCompile>
     <ClCompile Include="game\weapon\WeaponShotgun.cpp">
-      <Filter>Game\Weapon</Filter>
+      <Filter>Game</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

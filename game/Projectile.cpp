@@ -10,7 +10,6 @@
 #include "ai/AI_Manager.h"
 #include "Projectile.h"
 #include "spawner.h"
-#include "ai/AI.h"
 
 /*
 ===============================================================================
@@ -719,11 +718,6 @@ bool idProjectile::Collide( const trace_t &collision, const idVec3 &velocity, bo
 	if ( ent == owner.GetEntity() ) {
 		// assert( 0 );		// twhitaker: this isn't necessary
 		return true;
-	}
-
-	if (spawnArgs.GetBool("apply_freeze") && ent && ent->IsType(idAI::GetClassType())) {
-		idAI* enemy = static_cast<idAI*>(ent);
-		enemy->ApplyFreezeEffect(5000);
 	}
 
  	// just get rid of the projectile when it hits a player in noclip
