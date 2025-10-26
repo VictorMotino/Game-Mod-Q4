@@ -575,6 +575,18 @@ public:
 	//
 	// ai/ai.cpp
 	//
+
+	int slowEffectEndTime;
+	bool isSlowed;
+	bool isBurning;
+	int burnEffectEndTime;
+	int nextBurnTickTime;
+	void ApplyFreezeEffect(int duration);
+	bool isFrozen;
+	int freezeEndTime;
+	bool isPulled;
+	int pullEffectEndTime;
+	void ApplyPullEffect(const idVec3& pullOrigin, float force, int durationMS);
 	void					SetAAS							( void );
 	virtual	void			DormantBegin					( void );		// called when entity becomes dormant
 	virtual	void			DormantEnd						( void );		// called when entity wakes from being dormant
@@ -584,7 +596,6 @@ public:
 	virtual void			Show							( void );
 	virtual void			AdjustHealthByDamage			( int inDamage );
 	void					CalculateAttackOffsets			( void );
-
 	void					InitNonPersistentSpawnArgs		( void );	
 
 	/*

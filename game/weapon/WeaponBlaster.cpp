@@ -403,41 +403,48 @@ stateResult_t rvWeaponBlaster::State_Fire ( const stateParms_t& parms ) {
 		FIRE_WAIT,
 	};	
 	switch ( parms.stage ) {
-		case FIRE_INIT:	
+	case FIRE_INIT: {
 
-			StopSound ( SND_CHANNEL_ITEM, false );
-			viewModel->SetShaderParm ( BLASTER_SPARM_CHARGEGLOW, 0 );
-			//don't fire if we're targeting a gui.
-			idPlayer* player;
-			player = gameLocal.GetLocalPlayer();
+		StopSound(SND_CHANNEL_ITEM, false);
+		viewModel->SetShaderParm(BLASTER_SPARM_CHARGEGLOW, 0);
 
-			//make sure the player isn't looking at a gui first
-			if( player && player->GuiActive() )	{
-				fireHeldTime = 0;
-				SetState ( "Lower", 0 );
-				return SRESULT_DONE;
-			}
+		idPlayer* player = gameLocal.GetLocalPlayer();
 
-			if( player && !player->CanFire() )	{
-				fireHeldTime = 0;
-				SetState ( "Idle", 4 );
-				return SRESULT_DONE;
-			}
-
-
-	
-			if ( gameLocal.time - fireHeldTime > chargeTime ) {	
-				Attack ( true, 1, spread, 0, 1.0f );
-				PlayEffect ( "fx_chargedflash", barrelJointView, false );
-				PlayAnim( ANIMCHANNEL_ALL, "chargedfire", parms.blendFrames );
-			} else {
-				Attack ( false, 10, spread, 0, 0.2f );
-				PlayEffect ( "fx_normalflash", barrelJointView, false );
-				PlayAnim( ANIMCHANNEL_ALL, "fire", parms.blendFrames );
-			}
+		if (player && player->GuiActive()) {
 			fireHeldTime = 0;
-			
-			return SRESULT_STAGE(FIRE_WAIT);
+			SetState("Lower", 0);
+			return SRESULT_DONE;
+		}
+
+		if (player && !player->CanFire()) {
+			fireHeldTime = 0;
+			SetState("Idle", 4);
+			return SRESULT_DONE;
+		}
+
+		bool charged = (gameLocal.time - fireHeldTime > chargeTime);
+		if (charged) {
+			Attack(true, 1, spread, 0, 1.0f);
+			PlayEffect("fx_chargedflash", barrelJointView, false);
+			PlayAnim(ANIMCHANNEL_ALL, "chargedfire", parms.blendFrames);
+		}
+		else {
+			Attack(false, 10, spread, 0, 0.2f);
+			if (projectileEnt.IsValid()) {
+				projectileEnt->spawnArgs.SetBool("apply_freeze", true);
+			}
+			PlayEffect("fx_normalflash", barrelJointView, false);
+			PlayAnim(ANIMCHANNEL_ALL, "fire", parms.blendFrames);
+		}
+
+		
+		if (projectileEnt.IsValid()) {
+			projectileEnt->spawnArgs.Set("def_damage", "damage_freezepistol");
+		}
+
+		fireHeldTime = 0;
+		return SRESULT_STAGE(FIRE_WAIT);
+	}
 		
 		case FIRE_WAIT:
 			if ( AnimDone ( ANIMCHANNEL_ALL, 4 ) ) {
