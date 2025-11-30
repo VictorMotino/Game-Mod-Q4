@@ -1,3 +1,4 @@
+//commit test
 #include "../../idlib/precompiled.h"
 #pragma hdrstop
 
@@ -102,7 +103,7 @@ void rvWeaponRocketLauncher::Spawn ( void ) {
 	attackDict.GetFloat ( "speed", "0", guideSpeedFast );
 	guideSpeedSlow = guideSpeedFast * f;
 	
-	reloadRate = SEC2MS ( spawnArgs.GetFloat ( "reloadRate", ".8" ) );
+	reloadRate = SEC2MS ( spawnArgs.GetFloat ( "reloadRate", ".8" ) * 0.5f );
 	
 	guideAccelTime = SEC2MS ( spawnArgs.GetFloat ( "lockAccelTime", ".25" ) );
 	
@@ -443,12 +444,16 @@ stateResult_t rvWeaponRocketLauncher::State_Fire ( const stateParms_t& parms ) {
 		STAGE_INIT,
 		STAGE_WAIT,
 	};	
+	int numRockets = 5;	//amount of rockets to be fired at once.	
 	switch ( parms.stage ) {
-		case STAGE_INIT:
-			nextAttackTime = gameLocal.time + (fireRate * owner->PowerUpModifier ( PMOD_FIRERATE ));		
-			Attack ( false, 1, spread, 0, 1.0f );
-			PlayAnim ( ANIMCHANNEL_LEGS, "fire", parms.blendFrames );	
-			return SRESULT_STAGE ( STAGE_WAIT );
+		case STAGE_INIT: {
+			nextAttackTime = gameLocal.time + (fireRate * 0.5f * owner->PowerUpModifier(PMOD_FIRERATE));
+			for (int i = 0; i < numRockets; i++) {		//makes a click fire 'numRockets' amount of rockets. Used spread in def file to make it more noticeable.
+				Attack(false, 1, spread, 0, 1.0f);
+			}
+			PlayAnim(ANIMCHANNEL_LEGS, "fire", parms.blendFrames);
+			return SRESULT_STAGE(STAGE_WAIT);
+		}
 	
 		case STAGE_WAIT:			
 			if ( wsfl.attack && gameLocal.time >= nextAttackTime && ( gameLocal.isClient || AmmoInClip ( ) ) && !wsfl.lowerWeapon ) {
